@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# ──────────────────────────────────────────────────────────────────────────────
+# grammarly-check pre-commit hook
+#
+# Install:
+#   git config core.hooksPath .githooks
+# ──────────────────────────────────────────────────────────────────────────────
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+CHECKER="$SCRIPT_DIR/grammarly_check.py"
+STAGED=$(git diff --cached --diff-filter=AM --name-only -- '*.tex' '*.md' '*.txt' '*.rst' || true)
+
+if [ -z "$STAGED" ]; then
+    exit 0
+fi
+
+echo "🔍 grammarly-check: scanning staged files …"
+
+git diff --cached --diff-filter=AM -- '*.tex' '*.md' '*.txt' '*.rst' \
+    | grep '^+' \
+    | sed 's/^+//' \
+    | python3 "$CHECKER" \
+    || true
+
+echo "✅ grammarly-check finished."
