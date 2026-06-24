@@ -1,27 +1,25 @@
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────────────────────
-# Pre-commit hook: run grammarly-check on staged .tex / .md files.
+# Pre-commit hook: run languagetool-check on staged .tex / .md files.
 #
 # Install:
 #   ln -sf ../../.githooks/pre-commit .git/hooks/pre-commit
-#   # or use  cp examples/pre-commit.sh .git/hooks/pre-commit
 # ──────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+CHECKER="$SCRIPT_DIR/languagetool_check.py"
 STAGED=$(git diff --cached --diff-filter=AM --name-only -- '*.tex' '*.md' '*.txt' || true)
 
 if [ -z "$STAGED" ]; then
     exit 0
 fi
 
-echo "🔍 grammarly-check: reviewing staged files …"
+echo "🔍 languagetool-check: scanning staged files …"
 
-# Extract all added lines from staged diffs and pipe them to the checker.
-git diff --cached --diff-filter=AM -- '*.tex' '*.md' '*.txt' \
-    | grep '^+' \
-    | sed 's/^+//' \
-    | python3 grammarly_check.py \
-    || true
+for f in $STAGED; do
+    python3 "$CHECKER" --detex --file "$f" || true
+done
 
-echo "✅ grammarly-check finished."
+echo "✅ languagetool-check finished."

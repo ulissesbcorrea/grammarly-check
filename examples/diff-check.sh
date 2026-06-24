@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────────────────────
-# grammarly-check — check staged git diff for grammar/style issues
+# Check staged git diff for grammar/style issues (LanguageTool backend)
 # ──────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
 
-# Extract added lines from the staged diff, strip the leading `+`,
-# and pipe everything to grammarly-check.
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
 git diff --cached --diff-filter=AM -- \
     '*.tex' '*.md' '*.txt' '*.rst' \
     | grep '^+' \
     | sed 's/^+//' \
-    | python3 grammarly_check.py
+    | python3 "$SCRIPT_DIR/languagetool_check.py"
